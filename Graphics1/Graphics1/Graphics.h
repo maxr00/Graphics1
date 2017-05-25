@@ -35,6 +35,7 @@ class ShaderProgram
 		void Use();
 		void AddAttribute(const char* name, int numArgs, GLenum argType, size_t sizeofType, bool isNormalized, int argStride, int argStart);
 
+		void ApplyAttributes();
 	private:
 		class Attribute
 		{
@@ -51,7 +52,6 @@ class ShaderProgram
 				GLsizei start;
 		};
 
-		void ApplyAttributes();
 
 		GLuint id;
 		std::vector<Attribute> attributes;

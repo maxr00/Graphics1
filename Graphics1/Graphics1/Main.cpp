@@ -71,38 +71,29 @@ int main()
 	}
 
 
-	// Create triangle
-	static const GLfloat verts[] = {
-		//  x,     y, z,  r,       g,    b,
-		-0.5f, -0.5f, 0,  1.0f, 0.0f, 0.0f,
-		0.5f, -0.5f, 0,  0.0f, 1.0f, 0.0f,
-		0.0f,  0.5f, 0,  0.0f, 0.0f, 1.0f,
-	};
-
 	// Load Shader Program
 	ShaderProgram shaderProgram = LoadShaders("shader.vertshader", "shader.fragshader");
 	shaderProgram.AddAttribute("pos", 3, GL_FLOAT, sizeof(GL_FLOAT), false, 7, 0);
-	shaderProgram.AddAttribute("color", 4, GL_FLOAT, sizeof(GL_FLOAT), false, 7, 0);
+	shaderProgram.AddAttribute("color", 4, GL_FLOAT, sizeof(GL_FLOAT), false, 7, 3);
 
 	GLuint program = shaderProgram.GetProgramID();
 
+	// Create triangle
 	Mesh mesh = Mesh(shaderProgram);
 	mesh.AddTriangle(
 		//  x,     y, z,    r,    g,    b, a
 		-0.5f, -0.5f, 0, 1.0f, 0.0f, 0.0f, 1,
-		0.5f, -0.5f, 0, 0.0f, 1.0f, 0.0f, 1,
-		0.0f, 0.5f, 0, 0.0f, 0.0f, 1.0f, 1
+		 0.5f, -0.5f, 0, 0.0f, 1.0f, 0.0f, 1,
+		 0.0f,  0.5f, 0, 0.0f, 0.0f, 1.0f, 1
 	);
 	mesh.CompileMesh();
 
-
-	//Enable Shader Program
 	glUseProgram(program);
 
-	glClearColor(0.0f, 0.0f, 0.3f, 1.0f); //Set background color
+	glClearColor(0.0f, 0.0f, 0.0f, 1.0f); //Set background color
 	do
 	{
-//		glClear(GL_COLOR_BUFFER_BIT); // Clear screen
+		glClear(GL_COLOR_BUFFER_BIT); // Clear screen
 		glEnableVertexAttribArray(0);
 
 		mesh.Draw();

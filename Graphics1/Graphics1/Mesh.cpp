@@ -13,9 +13,6 @@ Mesh::Mesh(ShaderProgram shaderProgram, GLenum renderMode)
 	glBindBuffer(GL_ARRAY_BUFFER, vboID);
 
 	program.ApplyAttributes(); // Apply program attributes for vao to remember
-
-	glEnableVertexAttribArray(0); // Disable vao
-	glBindVertexArray(0); // Disable vbo
 }
 
 void Mesh::AddVertex(float x, float y, float z, float r, float g, float b, float a)
@@ -37,6 +34,7 @@ void Mesh::AddTriangle(
 void Mesh::Draw()
 {
 	glBindVertexArray(vaoID);
+	glBindBuffer(GL_ARRAY_BUFFER, vboID);
 	glDrawArrays(drawMode, 0, (int)vertices.size());
 }
 
@@ -47,19 +45,17 @@ std::vector<Mesh::Vertice>* Mesh::GetVertices()
 
 void Mesh::CompileMesh()
 {
-	glBindVertexArray(vaoID); // Enable vao
+	glBindVertexArray(vaoID); // Enable vao to ensure correct mesh is compiled
 	glBindBuffer(GL_ARRAY_BUFFER, vboID); // Enable vbo
-
-	float* verts = new float[vertices.size() * sizeof(float) * Vertice::vertDataVars];
-
+	
+	int s = vertices.size() * sizeof(float) * Vertice::vertDataVars;
+	float* verts = new float[s];
+	
 	int i = 0;
 	for each(auto vert in vertices)
 		for (int j = 0; j < sizeof(vert) / sizeof(float); ++j, ++i)
 			verts[i] = vert.data[j];
 
-	glBufferData(GL_ARRAY_BUFFER, sizeof(verts), verts, GL_STATIC_DRAW); //Give vbo verts
+	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * s, verts, GL_STATIC_DRAW); //Give vbo verts
 	delete [] verts;
-
-	glEnableVertexAttribArray(0); // Disable vao
-	glBindVertexArray(0); // Disable vbo
 }
