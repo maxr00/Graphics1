@@ -1,3 +1,6 @@
-﻿  Main.cpp
-  Graphics1.vcxproj -> C:\Users\moxra\Desktop\GitGraphics\Graphics1\Graphics1\x64\Debug\Graphics1.exe
-  Graphics1.vcxproj -> C:\Users\moxra\Desktop\GitGraphics\Graphics1\Graphics1\x64\Debug\Graphics1.pdb (Partial PDB)
+﻿  Mesh.cpp
+c:\users\moxra\documents\graphics1\graphics1\graphics1\mesh.cpp(72): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
+  Main.cpp
+  Generating Code...
+  Graphics1.vcxproj -> C:\Users\moxra\Documents\Graphics1\Graphics1\x64\Debug\Graphics1.exe
+  Graphics1.vcxproj -> C:\Users\moxra\Documents\Graphics1\Graphics1\x64\Debug\Graphics1.pdb (Partial PDB)

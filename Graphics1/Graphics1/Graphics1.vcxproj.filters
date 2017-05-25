@@ -30,4 +30,12 @@
       <Filter>Source Files</Filter>
     </ClInclude>
   </ItemGroup>
+  <ItemGroup>
+    <None Include="shader.fragshader">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="shader.vertshader">
+      <Filter>Resource Files</Filter>
+    </None>
+  </ItemGroup>
 </Project>

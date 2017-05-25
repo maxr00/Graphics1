@@ -1,12 +1,17 @@
 #version 330 core
 
+in vec2 texcoord;
+
 in vec3 pos;
 in vec4 color;
 
 out vec4 Color;
+out vec2 Texcoord;
 
 void main()
 {
+	Texcoord = texcoord;
+
 	gl_Position.xyz = pos;
 	gl_Position.w = 1;
 

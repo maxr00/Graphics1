@@ -3,7 +3,7 @@
 #include "Graphics.h"
 
 ///
-// Shader member functions
+// Shader
 ///
 
 Shader::Shader(unsigned int shaderType, const char* source)
@@ -49,7 +49,7 @@ bool Shader::Compile()
 		{
 			std::vector<GLchar> log(logSize);
 			glGetShaderInfoLog(id, logSize, &logSize, &log[0]);
-			fprintf(stderr, "Could not compile vertex shader \n%s\n", log);
+			fprintf(stderr, "Could not compile shader \n%s\n", log);
 			glDeleteShader(id);
 		}
 	}
@@ -73,7 +73,7 @@ void ShaderProgram::Attribute::Apply()
 }
 
 ///
-// Shader Program member functions
+// Shader Program
 ///
 
 ShaderProgram::ShaderProgram(Shader& vertexShader, Shader& fragmentShader)
@@ -82,7 +82,20 @@ ShaderProgram::ShaderProgram(Shader& vertexShader, Shader& fragmentShader)
 	glAttachShader(id, vertexShader.GetShaderID());
 	glAttachShader(id, fragmentShader.GetShaderID());
 	glLinkProgram(id);
+
+	successfulCompile = vertexShader.wasCompiled() && fragmentShader.wasCompiled();
 }
+
+ShaderProgram::~ShaderProgram()
+{
+	glDeleteProgram(id);
+}
+
+bool ShaderProgram::wasCompiled()
+{
+	return successfulCompile;
+}
+
 GLuint ShaderProgram::GetProgramID() 
 { 
 	return id; 

@@ -5,6 +5,7 @@
 
 #include "GL\glew.h"
 #include "GLFW\glfw3.h"
+#include "SOIL\SOIL.h"
 
 #include "Graphics.h"
 
@@ -27,12 +28,12 @@ std::string LoadFileToString(const char* filepath)
 	return fileData;
 }
 
-ShaderProgram LoadShaders(const char* vertShaderPath, const char* fragShaderPath)
+ShaderProgram* LoadShaders(const char* vertShaderPath, const char* fragShaderPath)
 {
 	std::string vertShaderSource = LoadFileToString(vertShaderPath).c_str();
 	std::string fragShaderSource = LoadFileToString(fragShaderPath).c_str();
 
-	return ShaderProgram(Shader(GL_VERTEX_SHADER, vertShaderSource.c_str()), Shader(GL_FRAGMENT_SHADER, fragShaderSource.c_str()));
+	return new ShaderProgram(Shader(GL_VERTEX_SHADER, vertShaderSource.c_str()), Shader(GL_FRAGMENT_SHADER, fragShaderSource.c_str()));
 }
 
 int main()
@@ -72,23 +73,60 @@ int main()
 
 
 	// Load Shader Program
-	ShaderProgram shaderProgram = LoadShaders("shader.vertshader", "shader.fragshader");
-	shaderProgram.AddAttribute("pos", 3, GL_FLOAT, sizeof(GL_FLOAT), false, 7, 0);
-	shaderProgram.AddAttribute("color", 4, GL_FLOAT, sizeof(GL_FLOAT), false, 7, 3);
+	ShaderProgram* shaderProgram = LoadShaders("shader.vertshader", "shader.fragshader");
 
-	GLuint program = shaderProgram.GetProgramID();
+	if (!shaderProgram->wasCompiled())
+	{
+		glfwTerminate();
+		fprintf(stderr, "Could not compile shader");
+		int a;
+		std::cin >> a;
+		return 1;
+	}
+
+	shaderProgram->AddAttribute("pos", 3, GL_FLOAT, sizeof(GL_FLOAT), false, 9, 0);
+	shaderProgram->AddAttribute("color", 4, GL_FLOAT, sizeof(GL_FLOAT), false, 9, 3);
+	shaderProgram->AddAttribute("texcoord", 2, GL_FLOAT, sizeof(GL_FLOAT), false, 9, 7);
+
+
+	GLuint program = shaderProgram->GetProgramID();
 
 	// Create triangle
-	Mesh mesh = Mesh(shaderProgram);
+	Mesh mesh = Mesh(*shaderProgram);
 	mesh.AddTriangle(
-		//  x,     y, z,    r,    g,    b, a
-		-0.5f, -0.5f, 0, 1.0f, 0.0f, 0.0f, 1,
-		 0.5f, -0.5f, 0, 0.0f, 1.0f, 0.0f, 1,
-		 0.0f,  0.5f, 0, 0.0f, 0.0f, 1.0f, 1
+		//  x,     y, z,    r,    g,    b, a, s, t
+		-0.5f, -0.5f, 0, 1.0f, 0.0f, 0.0f, 1, 0, 0,
+		 0.5f, -0.5f, 0, 0.0f, 1.0f, 0.0f, 1, 1, 0,
+		-0.5f,  0.5f, 0, 0.0f, 0.0f, 1.0f, 1, 0, 1
+	);
+	mesh.AddTriangle(
+		//  x,     y, z,    r,    g,    b, a, s, t
+		-0.5f,  0.5f, 0, 0.0f, 0.0f, 1.0f, 1, 0, 1,
+		 0.5f,  0.5f, 0, 1.0f, 0.0f, 0.0f, 1, 1, 1,
+		 0.5f, -0.5f, 0, 0.0f, 1.0f, 0.0f, 1, 1, 0
 	);
 	mesh.CompileMesh();
+	Texture tex = Texture("sample.png");
+	mesh.SetTexture(&tex);
 
-	glUseProgram(program);
+
+	Mesh mesh2 = Mesh(*shaderProgram);
+	mesh2.AddTriangle(
+		//  x,     y, z,    r,    g,    b, a, s, t
+		-1.0f, -1.0f, 0, 1.0f, 0.0f, 0.0f, 1, 0, 0,
+		1.0f, -1.0f, 0, 0.0f, 1.0f, 0.0f, 1, 1, 0,
+		-1.0f, 1.0f, 0, 0.0f, 0.0f, 1.0f, 1, 0, 1
+	);
+	mesh2.AddTriangle(
+		//  x,     y, z,    r,    g,    b, a, s, t
+		-1.0f, 1.0f, 0, 0.0f, 0.0f, 1.0f, 1, 0, 1,
+		1.0f, 1.0f, 0, 1.0f, 0.0f, 0.0f, 1, 1, 1,
+		1.0f, -1.0f, 0, 0.0f, 1.0f, 0.0f, 1, 1, 0
+	);
+	mesh2.CompileMesh();
+	mesh2.SetTexture(NULL);
+
+	shaderProgram->Use();
 
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f); //Set background color
 	do
@@ -96,6 +134,7 @@ int main()
 		glClear(GL_COLOR_BUFFER_BIT); // Clear screen
 		glEnableVertexAttribArray(0);
 
+		mesh2.Draw();
 		mesh.Draw();
 
 		glDisableVertexAttribArray(0);
@@ -103,6 +142,8 @@ int main()
 		glfwSwapBuffers(window);
 		glfwPollEvents();
 	} while (glfwWindowShouldClose(window) == false);
+
+	delete shaderProgram;
 
 	return 0;
 }
