@@ -49,7 +49,7 @@ bool Shader::Compile()
 		{
 			std::vector<GLchar> log(logSize);
 			glGetShaderInfoLog(id, logSize, &logSize, &log[0]);
-			fprintf(stderr, "Could not compile shader \n%s\n", log);
+			fprintf(stderr, "Could not compile shader \n%s\n", &log[0]);
 			glDeleteShader(id);
 		}
 	}

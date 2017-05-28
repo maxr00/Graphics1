@@ -9,5 +9,5 @@ uniform sampler2D tex;
 
 void main()
 {
-	outColor = clamp(texture(tex, Texcoord)+vec4(0,0,0,0), 0, 1) * Color;
+	outColor = texture(tex, Texcoord) * Color;
 }
