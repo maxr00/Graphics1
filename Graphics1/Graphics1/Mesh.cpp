@@ -1,5 +1,8 @@
 #include "Graphics.h"
 
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
+
 ///
 // Mesh
 ///
@@ -23,6 +26,9 @@ Mesh::Mesh(ShaderProgram& shaderProgram, GLenum renderMode)
 	glBindBuffer(GL_ARRAY_BUFFER, vboID);
 
 	program.ApplyAttributes(); // Apply program attributes for vao to remember
+
+	//Get Transform attrib locations
+	glGetUniformLocation(shaderProgram.GetProgramID(), "model");
 }
 
 Mesh::~Mesh()
@@ -56,6 +62,8 @@ void Mesh::Draw()
 	else
 		glBindTexture(GL_TEXTURE_2D, defaultTexture->GetID());
 
+	glUniformMatrix4fv(uniModel, 1, GL_FALSE, glm::value_ptr(transform.GetMatrix()));
+
 	glDrawArrays(drawMode, 0, (int)vertices.size());
 }
 
@@ -69,7 +77,7 @@ void Mesh::CompileMesh()
 	glBindVertexArray(vaoID); // Enable vao to ensure correct mesh is compiled
 	glBindBuffer(GL_ARRAY_BUFFER, vboID); // Enable vbo
 	
-	int s = vertices.size() * Vertice::vertDataVars;
+	int s = (int)vertices.size() * Vertice::vertDataVars;
 	float* verts = new float[s];
 	
 	int i = 0;
@@ -79,4 +87,127 @@ void Mesh::CompileMesh()
 
 	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * s, verts, GL_STATIC_DRAW); //Give vbo verts
 	delete [] verts;
+}
+
+///
+// Texture
+///
+Texture::Texture(const char* file)
+{
+	int width, height;
+	unsigned char* image = SOIL_load_image(file, &width, &height, 0, SOIL_LOAD_RGB);
+
+	glGenTextures(1, &id);
+	glBindTexture(GL_TEXTURE_2D, id);
+
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, image); // Load image
+	SOIL_free_image_data(image); // Data given to opengl, dont need it here anymore
+
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+	glGenerateMipmap(GL_TEXTURE_2D);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+}
+
+Texture::Texture(float *pixels, int width, int height)
+{
+	glGenTextures(1, &id);
+	glBindTexture(GL_TEXTURE_2D, id);
+
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_FLOAT, pixels); // Load image
+
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+	glGenerateMipmap(GL_TEXTURE_2D);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+}
+
+Texture::~Texture()
+{
+	glDeleteTextures(1, &id);
+}
+
+///
+// Transform
+///
+
+Transform::Transform()
+	: scale{ glm::vec3(1,1,1) }
+{ }
+
+Transform::Transform(glm::vec3 pos, glm::vec3 rotDegrees, glm::vec3 modelScale)
+	: position{ pos }, rotation{ rotDegrees }, scale{ modelScale }
+{ }
+
+glm::mat4 Transform::GetMatrix()
+{
+	if (isDirty)
+	{
+		matrix = glm::mat4();
+		matrix = glm::translate(matrix, position);
+		matrix = glm::rotate(matrix, glm::radians(rotation.y), glm::vec3(0, 1, 0));
+		matrix = glm::rotate(matrix, glm::radians(rotation.x), glm::vec3(1, 0, 0));
+		matrix = glm::rotate(matrix, glm::radians(rotation.z), glm::vec3(0, 0, 1));
+		matrix = glm::scale(matrix, scale);
+
+		isDirty = false;
+	}
+	return matrix;
+}
+
+void Transform::SetPosition(glm::vec3 pos)
+{
+	position = pos;
+	isDirty = true;
+}
+
+void Transform::SetRotation(glm::vec3 rotDegrees)
+{
+	rotation = rotDegrees;
+	isDirty = true;
+}
+
+void Transform::SetScale(glm::vec3 scl)
+{
+	scale = scl;
+	isDirty = true;
+}
+
+///
+// Camera
+///
+
+std::vector<ShaderProgram*> ShaderProgram::programs;
+
+void Camera::SetView(glm::vec3 pos, glm::vec3 target, glm::vec3 upVector)
+{
+	mPosition = pos;
+	mCenter = target;
+	mUp = upVector;
+	ApplyCameraMatrices();
+}
+
+void Camera::SetProjection(float FOV, float aspectRatio, float near, float far)
+{
+	mFOV = FOV;
+	mAspectRatio = aspectRatio;
+	mNear = near;
+	mFar = far;
+	ApplyCameraMatrices();
+}
+
+void Camera::ApplyCameraMatrices()
+{
+	glm::mat4 view = glm::lookAt(mPosition,	mCenter, mUp);
+	glm::mat4 proj = glm::perspective(glm::radians(mFOV), mAspectRatio,	mNear, mFar);
+	
+	for each(ShaderProgram* program in ShaderProgram::programs)
+	{
+		glUniformMatrix4fv(program->uniView, 1, GL_FALSE, glm::value_ptr(view));
+		glUniformMatrix4fv(program->uniProj, 1, GL_FALSE, glm::value_ptr(proj));
+	}
 }

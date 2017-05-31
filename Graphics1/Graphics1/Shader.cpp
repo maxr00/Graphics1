@@ -84,6 +84,11 @@ ShaderProgram::ShaderProgram(Shader& vertexShader, Shader& fragmentShader)
 	glLinkProgram(id);
 
 	successfulCompile = vertexShader.wasCompiled() && fragmentShader.wasCompiled();
+
+	uniView = glGetUniformLocation(id, "view");
+	uniProj = glGetUniformLocation(id, "proj");
+
+	programs.push_back(this);
 }
 
 ShaderProgram::~ShaderProgram()
