@@ -95,12 +95,12 @@ void Mesh::CompileMesh()
 Texture::Texture(const char* file)
 {
 	int width, height;
-	unsigned char* image = SOIL_load_image(file, &width, &height, 0, SOIL_LOAD_RGB);
+	unsigned char* image = SOIL_load_image(file, &width, &height, 0, SOIL_LOAD_RGBA);
 
 	glGenTextures(1, &id);
 	glBindTexture(GL_TEXTURE_2D, id);
 
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, image); // Load image
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, image); // Load image
 	SOIL_free_image_data(image); // Data given to opengl, dont need it here anymore
 
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
@@ -210,4 +210,44 @@ void Camera::ApplyCameraMatrices()
 		glUniformMatrix4fv(program->uniView, 1, GL_FALSE, glm::value_ptr(view));
 		glUniformMatrix4fv(program->uniProj, 1, GL_FALSE, glm::value_ptr(proj));
 	}
+}
+
+void Camera::Orbit(float degrees, glm::vec3 axis) // Rotates around target
+{
+	glm::mat4 matrix;
+	matrix = glm::translate(matrix, mCenter);
+	matrix = glm::rotate(matrix, glm::radians(degrees), axis);
+	matrix = glm::translate(matrix, -mCenter);
+
+	glm::vec3 forward = mPosition - mCenter;
+
+	if ((axis.x && forward.x) || (axis.y && forward.y) || (axis.z && forward.z)) // If axis contains forward
+	{
+		mPosition = matrix * glm::vec4(mPosition, 1);
+		mUp = matrix * glm::vec4(mUp, 1);
+	}
+	else
+		mPosition = matrix * glm::vec4(mPosition, 1);
+
+	ApplyCameraMatrices();
+}
+
+void Camera::OrbitAround(glm::vec3 center, float degrees, glm::vec3 axis) // Rotates around center
+{
+	glm::mat4 matrix;
+	matrix = glm::translate(matrix, center);
+	matrix = glm::rotate(matrix, glm::radians(degrees), axis);
+	matrix = glm::translate(matrix, -center);
+
+	glm::vec3 forward = mPosition - mCenter;
+
+	if ((axis.x && forward.x) || (axis.y && forward.y) || (axis.z && forward.z)) // If axis contains forward
+	{
+		mPosition = matrix * glm::vec4(mPosition, 1);
+		mUp = matrix * glm::vec4(mUp, 1);
+	}
+	else
+		mPosition = matrix * glm::vec4(mPosition, 1);
+
+	ApplyCameraMatrices();
 }

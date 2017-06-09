@@ -34,24 +34,14 @@ class ShaderProgram
 	friend class Camera;
 
 	public:
-		ShaderProgram(Shader& vertexShader, Shader& fragmentShader);
-		~ShaderProgram();
-
-		bool wasCompiled();
-		GLuint GetProgramID();
-		void Use();
-		void AddAttribute(const char* name, int numArgs, GLenum argType, size_t sizeofType, bool isNormalized, int argStride, int argStart);
-
-		void ApplyAttributes();
-
-	private:
 		class Attribute
 		{
 			public:
-				Attribute(ShaderProgram* program, const char* name, int numArgs, GLenum argType, size_t sizeofType, bool isNormalized, int argStride, int argStart);
-				void Apply();
+				Attribute(const char* name, int numArgs, GLenum argType, size_t sizeofType, bool isNormalized, int argStride, int argStart);
+				void Apply(ShaderProgram* program);
 
 			private:
+				const char* name;
 				GLuint index;
 				GLint size;
 				GLenum type;
@@ -60,6 +50,17 @@ class ShaderProgram
 				GLsizei start;
 		};
 
+		ShaderProgram(Shader& vertexShader, Shader& fragmentShader, std::vector<Attribute> attributes);
+		~ShaderProgram();
+
+		bool wasCompiled();
+		GLuint GetProgramID();
+		void Use();
+
+	private:
+
+		//void AddAttribute(const char* name, int numArgs, GLenum argType, size_t sizeofType, bool isNormalized, int argStride, int argStart);
+		void ApplyAttributes();
 
 		GLuint id;
 		GLuint uniView, uniProj;
@@ -155,6 +156,19 @@ class Camera
 		void SetNearPlane(float near) { mNear = near; ApplyCameraMatrices(); }
 		void SetFarPlane(float far) { mFar = far; ApplyCameraMatrices(); }
 
+		void MoveCamera(glm::vec3 pos) 
+		{
+			mCenter += pos - mPosition;
+			mPosition = pos;
+			ApplyCameraMatrices();
+		}
+
+		glm::vec3 GetPosition() { return mPosition; }
+		float GetFOV() { return mFOV; }
+
+		void Orbit(float degrees, glm::vec3 axis); // Rotates around target
+		void OrbitAround(glm::vec3 center, float degrees, glm::vec3 axis); // Rotates around center
+		
 	private:
 		void ApplyCameraMatrices();
 

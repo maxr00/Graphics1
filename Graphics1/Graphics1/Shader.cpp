@@ -1,6 +1,7 @@
 #include <algorithm>
 
 #include "Graphics.h"
+#include "Shaders.h"
 
 ///
 // Shader
@@ -60,14 +61,14 @@ bool Shader::Compile()
 // Attribute
 ///
 
-ShaderProgram::Attribute::Attribute(ShaderProgram* program, const char* name, int numArgs, GLenum argType, size_t sizeofType, bool isNormalized, int argStride, int argStart)
-	: size{ numArgs }, type{ argType }, normalized{ (unsigned char)isNormalized }, stride{ argStride * (GLsizei)sizeofType }, start{ argStart * (GLsizei)sizeofType }
+ShaderProgram::Attribute::Attribute(const char* name, int numArgs, GLenum argType, size_t sizeofType, bool isNormalized, int argStride, int argStart)
+	: name{ name }, size{ numArgs }, type{ argType }, normalized{ (unsigned char)isNormalized }, stride{ argStride * (GLsizei)sizeofType }, start{ argStart * (GLsizei)sizeofType }
 {
-	index = glGetAttribLocation(program->id, name);
 }
 
-void ShaderProgram::Attribute::Apply()
+void ShaderProgram::Attribute::Apply(ShaderProgram* program)
 {
+	index = glGetAttribLocation(program->id, name);
 	glEnableVertexAttribArray(index);
 	glVertexAttribPointer(index, size, type, normalized, stride, (void*)(start));
 }
@@ -76,7 +77,8 @@ void ShaderProgram::Attribute::Apply()
 // Shader Program
 ///
 
-ShaderProgram::ShaderProgram(Shader& vertexShader, Shader& fragmentShader)
+ShaderProgram::ShaderProgram(Shader& vertexShader, Shader& fragmentShader, std::vector<Attribute> attribs)
+	: attributes{attribs}
 {
 	id = glCreateProgram();
 	glAttachShader(id, vertexShader.GetShaderID());
@@ -111,15 +113,15 @@ void ShaderProgram::Use()
 	glUseProgram(id); 
 }
 
-void ShaderProgram::AddAttribute(const char* name, int numArgs, GLenum argType, size_t sizeofType, bool isNormalized, int argStride, int argStart)
-{
-	attributes.push_back(Attribute(this, name, numArgs, argType, sizeofType, isNormalized, argStride, argStart));
-}
+//void ShaderProgram::AddAttribute(const char* name, int numArgs, GLenum argType, size_t sizeofType, bool isNormalized, int argStride, int argStart)
+//{
+//	attributes.push_back(Attribute(this, name, numArgs, argType, sizeofType, isNormalized, argStride, argStart));
+//}
 
 void ShaderProgram::ApplyAttributes()
 {
 	for each (Attribute attrib in attributes)
 	{
-		attrib.Apply();
+		attrib.Apply(this);
 	}
 }

@@ -172,6 +172,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Graphics.h" />
+    <ClInclude Include="Shaders.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="shader.fragshader" />
