@@ -40,5 +40,11 @@
     <None Include="shader.vertshader">
       <Filter>Resource Files</Filter>
     </None>
+    <None Include="screen.vertshader">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="screen.fragshader">
+      <Filter>Resource Files</Filter>
+    </None>
   </ItemGroup>
 </Project>

@@ -1,4 +1,6 @@
 #include <algorithm>
+#include <iostream>
+#include <fstream>
 
 #include "Graphics.h"
 #include "Shaders.h"
@@ -113,15 +115,96 @@ void ShaderProgram::Use()
 	glUseProgram(id); 
 }
 
-//void ShaderProgram::AddAttribute(const char* name, int numArgs, GLenum argType, size_t sizeofType, bool isNormalized, int argStride, int argStart)
-//{
-//	attributes.push_back(Attribute(this, name, numArgs, argType, sizeofType, isNormalized, argStride, argStart));
-//}
-
 void ShaderProgram::ApplyAttributes()
 {
 	for each (Attribute attrib in attributes)
 	{
 		attrib.Apply(this);
 	}
+}
+
+///
+// Shader Helper Functions
+///
+
+static std::string LoadFileToString(const char* filepath)
+{
+	std::string fileData = "";
+	std::ifstream stream(filepath, std::ios::in);
+
+	if (stream.is_open())
+	{
+		std::string line = "";
+		while (getline(stream, line))
+		{
+			fileData += "\n" + line;
+		}
+
+		stream.close();
+	}
+
+	return fileData;
+}
+
+static ShaderProgram* LoadShaders(const char* vertShaderPath, const char* fragShaderPath, std::vector<ShaderProgram::Attribute>& attribs)
+{
+	std::string vertShaderSource = LoadFileToString(vertShaderPath).c_str();
+	std::string fragShaderSource = LoadFileToString(fragShaderPath).c_str();
+
+	return new ShaderProgram(Shader(GL_VERTEX_SHADER, vertShaderSource.c_str()), Shader(GL_FRAGMENT_SHADER, fragShaderSource.c_str()), attribs);
+}
+
+static void FailedCompile()
+{
+	glfwTerminate();
+	fprintf(stderr, "Could not compile shader");
+	int a;
+	std::cin >> a;
+	exit(1);
+}
+
+///
+// Load Shaders
+///
+
+//Shader Declaration
+ShaderProgram* Shaders::defaultShader;
+ShaderProgram* Shaders::defaultScreenShader;
+
+static void LoadDefaultShader()
+{
+	std::vector<ShaderProgram::Attribute> attribs;
+	attribs.push_back(ShaderProgram::Attribute("pos", 3, GL_FLOAT, sizeof(GL_FLOAT), false, 9, 0));
+	attribs.push_back(ShaderProgram::Attribute("color", 4, GL_FLOAT, sizeof(GL_FLOAT), false, 9, 3));
+	attribs.push_back(ShaderProgram::Attribute("texcoord", 2, GL_FLOAT, sizeof(GL_FLOAT), false, 9, 7));
+
+	Shaders::defaultShader = LoadShaders("shader.vertshader", "shader.fragshader", attribs);
+
+	if (!Shaders::defaultShader->wasCompiled())
+		FailedCompile();
+}
+
+static void LoadDefaultScreenShader()
+{
+	std::vector<ShaderProgram::Attribute> attribs;
+	attribs.push_back(ShaderProgram::Attribute("pos", 3, GL_FLOAT, sizeof(GL_FLOAT), false, 5, 0));
+	attribs.push_back(ShaderProgram::Attribute("texcoord", 2, GL_FLOAT, sizeof(GL_FLOAT), false, 5, 3));
+
+	Shaders::defaultScreenShader = LoadShaders("screen.vertshader", "screen.fragshader", attribs);
+
+	if (!Shaders::defaultScreenShader->wasCompiled())
+		FailedCompile();
+}
+
+// Creates all basic shaders
+void Shaders::Init()
+{
+	LoadDefaultShader();
+	LoadDefaultScreenShader();
+}
+
+// Frees all basic shaders
+void Shaders::Unload()
+{
+	delete defaultShader;
 }

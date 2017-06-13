@@ -175,6 +175,8 @@
     <ClInclude Include="Shaders.h" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="screen.fragshader" />
+    <None Include="screen.vertshader" />
     <None Include="shader.fragshader" />
     <None Include="shader.vertshader" />
   </ItemGroup>

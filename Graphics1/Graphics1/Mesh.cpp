@@ -8,8 +8,8 @@
 ///
 static Texture* defaultTexture;
 
-Mesh::Mesh(ShaderProgram& shaderProgram, GLenum renderMode) 
-	: program{ shaderProgram }, drawMode{renderMode}
+Mesh::Mesh(ShaderProgram* shaderProgram, GLenum renderMode) 
+	: program{ *shaderProgram }, drawMode{ renderMode }
 {
 	if (!defaultTexture) // no default texture, make it
 	{
@@ -28,7 +28,7 @@ Mesh::Mesh(ShaderProgram& shaderProgram, GLenum renderMode)
 	program.ApplyAttributes(); // Apply program attributes for vao to remember
 
 	//Get Transform attrib locations
-	glGetUniformLocation(shaderProgram.GetProgramID(), "model");
+	glGetUniformLocation(shaderProgram->GetProgramID(), "model");
 }
 
 Mesh::~Mesh()

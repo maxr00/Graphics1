@@ -9,6 +9,8 @@
 
 #include <glm/glm.hpp>
 
+#include "Shaders.h"
+
 class Shader
 {
 	public:
@@ -112,7 +114,7 @@ class Mesh
 			float data[vertDataVars];
 		};
 
-		Mesh(ShaderProgram& shaderProgram, GLenum renderMode = GL_TRIANGLES);
+		Mesh(ShaderProgram* shaderProgram = Shaders::defaultShader, GLenum renderMode = GL_TRIANGLES);
 		~Mesh();
 
 		void AddVertex(float x, float y, float z, float r, float g, float b, float a, float texX, float texY);
@@ -169,6 +171,8 @@ class Camera
 		void Orbit(float degrees, glm::vec3 axis); // Rotates around target
 		void OrbitAround(glm::vec3 center, float degrees, glm::vec3 axis); // Rotates around center
 		
+		void Use() { ApplyCameraMatrices(); }
+
 	private:
 		void ApplyCameraMatrices();
 
